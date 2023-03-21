@@ -31,8 +31,8 @@ begin
 	    B_t, G_t, g_t = u
 	    b_B, b_g, b_G, d_B, d_g, d_G, E, H, pr = p
 	    du[1] = b_B*B_t - G_t*E - B_t*d_B
-	    du[2] = b_G*G_t + H*g_t - B_t*pr*G_t - d_G*G_t
-	    du[3] = b_g*g_t + B_t*pr*G_t - H*g_t - d_g*g_t
+	    du[2] = b_G*G_t + B_t*pr*g_t - H*g_t  - d_G*G_t
+	    du[3] = b_g*g_t + H*G_t - d_g*g_t
 	end
 	
 		b_B = 1.0 ## bacterial growth rate
