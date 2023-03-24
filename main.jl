@@ -1,8 +1,5 @@
 using DifferentialEquations, Plots
 
-include("prionStructs.jl")
-
-
 ## version of function that uses vectors
 # function f(du, u, p ,t)
 #     B_t, G_t, g_t = u
@@ -12,43 +9,36 @@ include("prionStructs.jl")
 #     du[3] = b_g*g_t + B_t*pr*G_t - H*g_t - d_g*g_t
 # end
 
-## rewritten to use structs ()
-# function f(du, u, p ,t)
-    B_t, G_t, g_t = u.pop
-    # b_B, b_g, b_G, d_B, d_g, d_G, E, H, pr = p
-    du[1] = p.b_B*u.B_t - u.G_t*p.E - u.B_t*p.d_B
-    du[2] = p.b_G*u.G_t + p.H*u.g_t - u.B_t*p.pr*u.G_t - p.d_G*u.G_t
-    du[3] = p.b_g*u.g_t + u.B_t*p.pr*u.G_t - p.H*u.g_t - p.d_g*u.g_t
-# end
+## version with population maxes
+function f(du, u, p ,t)
+    B_t, G_t, g_t = u
+    r_B, r_g, r_G, k_B, k_Y, E, H, pr = p ##i hate this! 
+    du[1] = r_B*B_t*(1-B_t/k_B) - B_t*G_t*E # dB/dT
+    du[2] = r_G*G_t*(1-((G_t+g_t)/k_Y)) + H*g_t*B_t - B_t*pr*G_t # dG/dt
+    du[3] = r_g*g_t*(1-((G_t+g_t)/k_Y)) + B_t*pr*G_t - H*g_t*B_t # dg/dT
+end
 
 
-# function f(du, u, p ,t)
-#     # B_t, G_t, g_t = u
-#     # b_B, b_g, b_G, d_B, d_g, d_G, E, H, pr = p
-#     du[1] = p.b_B*u.B_t - u.G_t*p.E - u.B_t*p.d_B
-#     du[2] = p.b_G*u.G_t + p.H*u.g_t - u.B_t*p.pr*u.G_t - p.d_G*u.G_t
-#     du[3] = p.b_g*u.g_t + u.B_t*p.pr*u.G_t - p.H*u.g_t - p.d_g*u.g_t
-# end
 
 function main()
     ## Parameters
-    b_B = 1.0 ## bacterial growth rate
-    b_G = 1.0 ## GRA+ growth rate
-    b_g = 1.0 ## gra- growth rate
+    
+    r_B = 1.0
+    r_g = 1.1
+    r_G = 1.1
 
-    d_B = 1.0
-    d_G = 1.0
-    d_g = 1.0
+    k_B = 1.0
+    k_Y = 1.0
 
     E = 0.1 ## Effect of ethanol on bacterial death
     H = 0.01 ## effect of HSP on prion + yeast
     pr = 0.05 ## effect of bacteria on prion activation
 
-    p = [b_B, b_g, b_G, d_B, d_g, d_G, E, H, pr]
+    p = [r_B, r_g, r_G, k_B, k_Y, E, H, pr]
 
-    B_0 = 100 ## Bacterial pop size // Guessing at a reasonable population size
-    G_0 = 100 ## GRA+ pop size
-    g_0 = 1 ## gra- pop size
+    B_0 = 1 ## Bacterial pop size // Guessing at a reasonable population size
+    G_0 = 0.1 ## GRA+ pop size
+    g_0 = 0.01 ## gra- pop size
 
     u = [B_0, G_0, g_0]
     # u = state_var(B_0, G_0, g_0)
