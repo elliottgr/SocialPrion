@@ -29,29 +29,28 @@ end
 begin
 	function f(du, u, p ,t)
 	    B_t, G_t, g_t = u
-	    b_B, b_g, b_G, d_B, d_g, d_G, E, H, pr = p
-	    du[1] = b_B*B_t - G_t*E - B_t*d_B
-	    du[2] = b_G*G_t + B_t*pr*g_t - H*g_t  - d_G*G_t
-	    du[3] = b_g*g_t + H*G_t - B_t*pr*g_t- d_g*g_t
+	    r_B, r_g, r_G, k_B, k_Y, E, H, pr = p ##i hate this! 
+	    du[1] = r_B*B_t*(1-B_t/k_B) - B_t*G_t*E # dB/dT
+	    du[2] = r_G*G_t*(1-((G_t+g_t)/k_Y)) + H*g_t*B_t - B_t*pr*G_t # dG/dt
+	    du[3] = r_g*g_t*(1-((G_t+g_t)/k_Y)) + B_t*pr*G_t - H*g_t*B_t # dg/dT
 	end
 	
-		b_B = 1.0 ## bacterial growth rate
-	    b_G = 1.0 ## GRA+ growth rate
-	    b_g = 1.0 ## gra- growth rate
-	
-	    d_B = 1.0
-	    d_G = 1.0
-	    d_g = 1.0
-	
-	    E = 0 ## Effect of ethanol on bacterial death
-	    # H = 0.01 ## effect of HSP on prion + yeast
-	    # pr = 0.05 ## effect of bacteria on prion activation
-	
-	    p = [b_B, b_g, b_G, d_B, d_g, d_G, E, H, pr]
-	
+    r_B = 1.0
+    r_g = 1.1
+    r_G = 2.0
+
+    k_B = 1.0
+    k_Y = 1.0
+
+    E = 0.5 ## Effect of ethanol on bacterial death
+    # H = 0.01 ## effect of HSP on prion + yeast
+    # pr = 0.05 ## effect of bacteria on prion activation
+
+    p = [r_B, r_g, r_G, k_B, k_Y, E, H, pr]
+
 	    B_0 = 1 ## Bacterial pop size // Guessing at a reasonable population size
-	    G_0 = 1 ## GRA+ pop size
-	    g_0 = 1 ## gra- pop size
+	    G_0 = 0.9 ## GRA+ pop size
+	    g_0 = 0.05 ## gra- pop size
 	
 	    u = [B_0, G_0, g_0]
 	    # u = state_var(B_0, G_0, g_0)
@@ -1745,7 +1744,7 @@ version = "1.4.1+0"
 # ╠═a3e7ce07-45b9-467b-ba5b-b40ba6581f74
 # ╠═492efafa-475a-4667-8107-93d0b9d76e28
 # ╠═c99b612a-26f6-4bdb-8f92-e8a703e2283f
-# ╠═f3560955-0285-4474-bac2-eac2b223a86f
+# ╟─f3560955-0285-4474-bac2-eac2b223a86f
 # ╠═384d72ad-4d7f-4800-b12b-2033e2d9567d
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
