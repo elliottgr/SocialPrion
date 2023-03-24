@@ -2,14 +2,15 @@ using DifferentialEquations, Plots
 
 include("prionStructs.jl")
 
+
 ## version of function that uses vectors
-function f(du, u, p ,t)
-    B_t, G_t, g_t = u
-    b_B, b_g, b_G, d_B, d_g, d_G, E, H, pr = p ##i hate this! 
-    du[1] = b_B*B_t - G_t*E - B_t*d_B
-    du[2] = b_G*G_t + H*g_t - B_t*pr*G_t - d_G*G_t
-    du[3] = b_g*g_t + B_t*pr*G_t - H*g_t - d_g*g_t
-end
+# function f(du, u, p ,t)
+#     B_t, G_t, g_t = u
+#     b_B, b_g, b_G, d_B, d_g, d_G, E, H, pr = p ##i hate this! 
+#     du[1] = b_B*B_t - G_t*E - B_t*d_B
+#     du[2] = b_G*G_t + H*g_t - B_t*pr*G_t - d_G*G_t
+#     du[3] = b_g*g_t + B_t*pr*G_t - H*g_t - d_g*g_t
+# end
 
 ## rewritten to use structs ()
 # function f(du, u, p ,t)
@@ -21,13 +22,13 @@ end
 # end
 
 
-function f(du, u, p ,t)
-    # B_t, G_t, g_t = u
-    # b_B, b_g, b_G, d_B, d_g, d_G, E, H, pr = p
-    du[1] = p.b_B*u.B_t - u.G_t*p.E - u.B_t*p.d_B
-    du[2] = p.b_G*u.G_t + p.H*u.g_t - u.B_t*p.pr*u.G_t - p.d_G*u.G_t
-    du[3] = p.b_g*u.g_t + u.B_t*p.pr*u.G_t - p.H*u.g_t - p.d_g*u.g_t
-end
+# function f(du, u, p ,t)
+#     # B_t, G_t, g_t = u
+#     # b_B, b_g, b_G, d_B, d_g, d_G, E, H, pr = p
+#     du[1] = p.b_B*u.B_t - u.G_t*p.E - u.B_t*p.d_B
+#     du[2] = p.b_G*u.G_t + p.H*u.g_t - u.B_t*p.pr*u.G_t - p.d_G*u.G_t
+#     du[3] = p.b_g*u.g_t + u.B_t*p.pr*u.G_t - p.H*u.g_t - p.d_g*u.g_t
+# end
 
 function main()
     ## Parameters

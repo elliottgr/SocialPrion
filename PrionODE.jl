@@ -32,7 +32,7 @@ begin
 	    b_B, b_g, b_G, d_B, d_g, d_G, E, H, pr = p
 	    du[1] = b_B*B_t - G_t*E - B_t*d_B
 	    du[2] = b_G*G_t + B_t*pr*g_t - H*g_t  - d_G*G_t
-	    du[3] = b_g*g_t + H*G_t - d_g*g_t
+	    du[3] = b_g*g_t + H*G_t - B_t*pr*g_t- d_g*g_t
 	end
 	
 		b_B = 1.0 ## bacterial growth rate
@@ -51,13 +51,18 @@ begin
 	
 	    B_0 = 1 ## Bacterial pop size // Guessing at a reasonable population size
 	    G_0 = 1 ## GRA+ pop size
-	    g_0 = .01 ## gra- pop size
+	    g_0 = 1 ## gra- pop size
 	
 	    u = [B_0, G_0, g_0]
 	    # u = state_var(B_0, G_0, g_0)
 	
-	    tspan = (0.0, 12.0)
+	    tspan = (0.0, 10.0)
 end
+
+# ╔═╡ f3560955-0285-4474-bac2-eac2b223a86f
+Markdown.parse("""
+If we ignore the effects of the bacterial population, we can see the effect of the yeast-specific prion interaction in terms of the parameters ``H`` and ``p``. Below you can see the dynamics for ``H`` = $H and ``p`` = $pr . Note how the population of GRA``^+`` mutants (``G(t)``) goes to ``0`` when ``H > p``, but both populations grow when ``p > H``.
+""")
 
 # ╔═╡ 384d72ad-4d7f-4800-b12b-2033e2d9567d
 begin
@@ -1740,6 +1745,7 @@ version = "1.4.1+0"
 # ╠═a3e7ce07-45b9-467b-ba5b-b40ba6581f74
 # ╠═492efafa-475a-4667-8107-93d0b9d76e28
 # ╠═c99b612a-26f6-4bdb-8f92-e8a703e2283f
+# ╠═f3560955-0285-4474-bac2-eac2b223a86f
 # ╠═384d72ad-4d7f-4800-b12b-2033e2d9567d
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
