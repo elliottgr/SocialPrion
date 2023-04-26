@@ -22,18 +22,35 @@ end
 # ╔═╡ bd85fdd8-b34a-4ebe-8e14-e63630bf6db7
 ## ODE option definitions
 begin
-	function base_model(du, u, p ,t)
+	function shared_carrying_cap(du, u, p, t) #base model
 	    B_t, G_t, g_t = u
-	    r_B, r_g, r_G, k_B, k_Y, E, H, pr = p ##i hate this! 
+	    r_B, r_g, r_G, k_B, k_Y, k_G, E, H, pr = p ##i hate this! 
 	    du[1] = r_B*B_t*(1-B_t/k_B) - B_t*G_t*E # dB/dT
 	    du[2] = r_G*G_t*(1-((G_t+g_t)/k_Y)) + H*g_t*B_t - B_t*pr*G_t # dG/dt
 	    du[3] = r_g*g_t*(1-((G_t+g_t)/k_Y)) + B_t*pr*G_t - H*g_t*B_t # dg/dT
 	end
 
+	function yeast_glucose_limited(du, u, p, t) # Same as base model but dG/dt is now limited by the total yeast population (k_Y) and the amount of free glucose (k_G) 
+		B_t, G_t, g_t = u
+	    r_B, r_g, r_G, k_B, k_Y, k_G, E, H, pr = p 
+		du[1] = r_B*B_t*(1-B_t/k_B) - B_t*G_t*E # dB/dT // Same as base model
+		du[2] = r_G*G_t*(1-((G_t+g_t)/k_Y)) * (1-(G_t/k_G)) + H*g_t*B_t - B_t*pr*G_t # dG/dt but with an added 
+	    du[3] = r_g*g_t*(1-((G_t+g_t)/k_Y)) + B_t*pr*G_t - H*g_t*B_t # dg/dT // Same as base model
+	end
+
+	function glucose_limited(du, u, p, t) # similar to glucose limited, but the glucose carrying capacity is now limited by both bacterial and GAR+ yeast
+		B_t, G_t, g_t = u
+	    r_B, r_g, r_G, k_B, k_Y, k_G, E, H, pr = p 
+		du[1] = r_B*B_t*(1-B_t/k_B) * (1-((G_t+B_t)/k_G)) - B_t*G_t*E # dB/dT 
+		du[2] = r_G*G_t*(1-((G_t+g_t)/k_Y)) * (1-((G_t+B_t)/k_G)) + H*g_t*B_t - B_t*pr*G_t # dG/dt
+	    du[3] = r_g*g_t*(1-((G_t+g_t)/k_Y)) + B_t*pr*G_t - H*g_t*B_t # dg/dT // Same as base model
+	end
 end
 
 # ╔═╡ a1b203b6-7c60-4444-bac7-b042a4e86b2f
-@bind f Select([base_model => "Base Model"])
+@bind f Select([shared_carrying_cap => "Base Model",
+				yeast_glucose_limited => "Glucose Limited (Yeast Only)",
+				glucose_limited => "Glucose Limited"])
 
 # ╔═╡ 941bea98-1cf7-4b1d-9ab4-e9a88c658ea0
 begin
@@ -67,23 +84,23 @@ begin
 		end
 	end
 	
-	@bind values tune_parameters(["r_B", "r_g", "r_G"], ["K_B", "K_Y"], ["E", "H", "P"])
+	@bind values tune_parameters(["r_B", "r_g", "r_G"], ["K_B", "K_Y", "K_G"], ["E", "H", "P"])
 end
 
 # ╔═╡ a3e7ce07-45b9-467b-ba5b-b40ba6581f74
 begin
 
-	r_B, r_g, r_G, k_B, k_Y, E, H, pr = values
-    p = [r_B, r_g, r_G, k_B, k_Y, E, H, pr]
+	r_B, r_g, r_G, k_B, k_Y, k_G, E, H, pr = values
+    p = [r_B, r_g, r_G, k_B, k_Y, k_G, E, H, pr]
 
 	B_0 = 1 ## Bacterial pop size // Guessing at a reasonable population size
-	G_0 = 0.9 ## GRA+ pop size
-	g_0 = 0.05 ## gra- pop size
+	G_0 = 0.9 ## Glucose utilizing / gra- pop size
+	g_0 = 0.05 ## Non-glucose utilizing / GRA+ pop size
 
 	u = [B_0, G_0, g_0]
 	# u = state_var(B_0, G_0, g_0)
 # 
-	tspan = (0.0, 10.0)
+	tspan = (0.0, 100.0)
 end
 
 # ╔═╡ 384d72ad-4d7f-4800-b12b-2033e2d9567d
@@ -96,7 +113,7 @@ end
 
 # ╔═╡ f3560955-0285-4474-bac2-eac2b223a86f
 Markdown.parse("""
-If we ignore the effects of the bacterial population, we can see the effect of the yeast-specific prion interaction in terms of the parameters ``H`` and ``p``. Below you can see the dynamics for ``H`` = $H and ``p`` = $pr . Note how the population of GRA``^+`` mutants (``G(t)``) goes to ``0`` when ``H > p``, but both populations grow when ``p > H``.
+If we ignore the effects of the bacterial population, we can see the effect of the yeast-specific prion interaction in terms of the parameters ``H`` and ``p``. Below you can see the dynamics for ``H`` = $H and ``p`` = $pr . Note how the population of Glucose Utilizing (gra``^-``) yeast (``G(t)``) goes to ``0`` when ``H > p``, but both populations coexist when ``p > H``.
 """)
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -1773,9 +1790,9 @@ version = "1.4.1+0"
 # ╠═578061e0-c4e1-11ed-21e4-474a22c49549
 # ╠═bd85fdd8-b34a-4ebe-8e14-e63630bf6db7
 # ╠═a3e7ce07-45b9-467b-ba5b-b40ba6581f74
-# ╟─a1b203b6-7c60-4444-bac7-b042a4e86b2f
+# ╠═a1b203b6-7c60-4444-bac7-b042a4e86b2f
 # ╟─941bea98-1cf7-4b1d-9ab4-e9a88c658ea0
-# ╟─384d72ad-4d7f-4800-b12b-2033e2d9567d
+# ╠═384d72ad-4d7f-4800-b12b-2033e2d9567d
 # ╠═f3560955-0285-4474-bac2-eac2b223a86f
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
