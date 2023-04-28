@@ -26,24 +26,24 @@ begin
 	    B_t, G_t, g_t = u
 	    r_B, r_g, r_G, k_B, k_Y, k_G, E, H, pr = p ##i hate this! 
 	    du[1] = r_B*B_t*(1-B_t/k_B) - B_t*G_t*E # dB/dT
-	    du[2] = r_G*G_t*(1-((G_t+g_t)/k_Y)) + H*g_t*B_t - B_t*pr*G_t # dG/dt
-	    du[3] = r_g*g_t*(1-((G_t+g_t)/k_Y)) + B_t*pr*G_t - H*g_t*B_t # dg/dT
+	    du[2] = r_G*G_t*(1-((G_t+g_t)/k_Y)) + H*g_t - B_t*pr*G_t # dG/dt
+	    du[3] = r_g*g_t*(1-((G_t+g_t)/k_Y)) + B_t*pr*G_t - H*g_t # dg/dT
 	end
 
 	function yeast_glucose_limited(du, u, p, t) # Same as base model but dG/dt is now limited by the total yeast population (k_Y) and the amount of free glucose (k_G) 
 		B_t, G_t, g_t = u
 	    r_B, r_g, r_G, k_B, k_Y, k_G, E, H, pr = p 
 		du[1] = r_B*B_t*(1-B_t/k_B) - B_t*G_t*E # dB/dT // Same as base model
-		du[2] = r_G*G_t*(1-((G_t+g_t)/k_Y)) * (1-(G_t/k_G)) + H*g_t*B_t - B_t*pr*G_t # dG/dt but with an added 
-	    du[3] = r_g*g_t*(1-((G_t+g_t)/k_Y)) + B_t*pr*G_t - H*g_t*B_t # dg/dT // Same as base model
+		du[2] = r_G*G_t*(1-((G_t+g_t)/k_Y)) * (1-(G_t/k_G)) + H*g_t - B_t*pr*G_t # dG/dt but with an added 
+	    du[3] = r_g*g_t*(1-((G_t+g_t)/k_Y)) + B_t*pr*G_t - H*g_t # dg/dT // Same as base model
 	end
 
 	function glucose_limited(du, u, p, t) # similar to glucose limited, but the glucose carrying capacity is now limited by both bacterial and GAR+ yeast
 		B_t, G_t, g_t = u
 	    r_B, r_g, r_G, k_B, k_Y, k_G, E, H, pr = p 
 		du[1] = r_B*B_t*(1-B_t/k_B) * (1-((G_t+B_t)/k_G)) - B_t*G_t*E # dB/dT 
-		du[2] = r_G*G_t*(1-((G_t+g_t)/k_Y)) * (1-((G_t+B_t)/k_G)) + H*g_t*B_t - B_t*pr*G_t # dG/dt
-	    du[3] = r_g*g_t*(1-((G_t+g_t)/k_Y)) + B_t*pr*G_t - H*g_t*B_t # dg/dT // Same as base model
+		du[2] = r_G*G_t*(1-((G_t+g_t)/k_Y)) * (1-((G_t+B_t)/k_G)) + H*g_t - B_t*pr*G_t # dG/dt
+	    du[3] = r_g*g_t*(1-((G_t+g_t)/k_Y)) + B_t*pr*G_t - H*g_t # dg/dT // Same as base model
 	end
 end
 
