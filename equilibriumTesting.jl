@@ -6,7 +6,7 @@ using InteractiveUtils
 
 # ╔═╡ ccac70b4-e82f-11ed-1fd5-0f61af1d45c8
 begin 
-	using Plots, PlutoUI, HypertextLiteral
+	using Symbolic, Plots, PlutoUI, HypertextLiteral
 end
 
 # ╔═╡ a128efad-199c-4ad4-bda3-c7ce80a9a780
@@ -82,6 +82,37 @@ begin
 	# plot([base_B, base_G, base_g, glucose_B, glucose_G, glucose_G], layout = (2,1))
 end
 
+# ╔═╡ 7c2e0059-4ff8-4eff-88b3-fce17c64d403
+begin
+	function base_model(du, u, p, t)
+		B, G, g = u
+		r, K_B, K_y, K_G, H, p, E = p
+		du[1] = dBdt(r, B, G, g, K_B, K_y, K_G, H, p, E)
+		du[2] = dGdt(r, B, G, g, K_B, K_y, K_G, H, p, E)
+		du[3] = dgdt(r, B, G, g, K_B, K_y, K_G, H, p, E)		
+	end
+
+	f(B,G,g) = [B*(1-B) - (B*G*0.1), G*(1-(G+g)) + (0.1 * g) - (B*0.2*G), g*(1-(G+g)) + (B*0.2*G) - (0.1*g)]
+
+
+	
+	B_0 = 1.0
+	G_0 = 0.1
+	g_0 = 0.1
+	
+	params = [r, K_B, K_y, K_G, H, p, E]
+	u = [B_0, G_0, g_0]
+
+	# f_test = f(u...)
+	
+	ForwardDiff.jacobian(BGg->f(BGg...), u)
+	
+	# tspan = (0.0, 10.0)
+
+	# prob = ODEProblem(base_model, u, tspan, params)
+	
+end
+
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
@@ -101,7 +132,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.0"
 manifest_format = "2.0"
-project_hash = "f8d6e154bede8202d2ee74e222e3a45c9b0e62d9"
+project_hash = "8ae66afb7c8e833d9774467a9bcc4b26ce47c498"
 
 [[deps.AbstractPlutoDingetjes]]
 deps = ["Pkg"]
@@ -1070,6 +1101,7 @@ version = "1.4.1+0"
 
 # ╔═╡ Cell order:
 # ╠═ccac70b4-e82f-11ed-1fd5-0f61af1d45c8
-# ╟─a128efad-199c-4ad4-bda3-c7ce80a9a780
+# ╠═a128efad-199c-4ad4-bda3-c7ce80a9a780
+# ╠═7c2e0059-4ff8-4eff-88b3-fce17c64d403
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
