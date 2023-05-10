@@ -6,7 +6,7 @@ using InteractiveUtils
 
 # ╔═╡ ccac70b4-e82f-11ed-1fd5-0f61af1d45c8
 begin 
-	using Symbolics, Plots, LinearAlgebra, Combinatorics
+	using Symbolics, Plots, LinearAlgebra
 end
 
 # ╔═╡ a128efad-199c-4ad4-bda3-c7ce80a9a780
@@ -126,37 +126,30 @@ There are only two simple equilibria in the glucose-limited model: $f(0, 0, 0)$ 
 # ╔═╡ dd9ed48e-26f0-441c-883f-1e0ee9143caf
 
 	## Testing all permutations of f(x, y, z) for equilibria, where x, y, and z
-	## are (individual) variables of the model. This tests for "simple" equilibria
+	## are individual variables of the model. This tests for "simple" equilibria
 	## like those corresponding to extinction or fixation of the populations. 
 	## It does NOT check affine or linear combinations of inputs. For example,
 	## it will check the input f(rG, 0, 0), but not inputs of the form f(rG*H, 0, 0)
 	## or f(rG+H, 0, 0). 
 	
 begin
-	
-	## The below code generates every triplet of parameter combinations to check
-	## for equilibria. It's exhausitve, but generates some permutations multiple times
-	## Overcounting is happening because combinations do not (by definition) count
-	## different orders as unique, but there is no function for sampling permutations
-	## with replacements (i.e. triplets do not appear). A more efficient solution 
-	## could be developed (and added to Combinatorics.jl), but this is only over- 
-	## counting by ~50% when considering "trivial" inputs. 
 
-	param_set = [0 B G g rB rG rg KB KY KG H p E]
-	param_combinations = []
-	
-	for x in with_replacement_combinations(param_set, 3)
-		for y in permutations(x)
-			push!(param_combinations, y)
-		end
-	end
-	
-	## A quirk of symbolics is it will only evaluate == when both
-	## elements are all zeros. Since I'm looking for equilibria symbolically
-	## ---outputs of the form [0,0,0]---I can use the try/catch loop to check for 
-	## zeros. This could be improved :)
+	## Combinatorics.jl does not contain a function for permutations
+	## with repeats (only combinations w/ repeats or multiset perms)
+	## Below code is from https://discourse.julialang.org/t/how-to-do-permutations-with-repetition/93192 
+	## It generates permutations with repeats, which can be thought of
+	## as all words of size k from an alphabet. Here, k = 3 and the 
+	## alphabet is the set of ODE parameters. 
 
-	for c in unique(param_combinations)
+	param_set = [0 rB rG rg KB KY KG H p E]
+	param_perms = Iterators.product(Iterators.repeated(param_set,3)...)
+	
+	## A quirk of Symbolics.jl is it will only evaluate == when both
+	## args are all zeros. I'm looking for equilibria symbolically
+	## ---outputs of the form [0,0,0]---so the try/catch loop checks  
+	## for zeros. This could be improved, but works as of 5/10/23 :)
+
+	for c in param_perms
 		try f(c...) == [0,0,0] 
 			print("Equilibrium found at: ", c, "\n \n")
 		catch e
@@ -165,9 +158,8 @@ begin
 		end
 	end
 
-	print("\n~~~~~~~~~~~~~~~~~~~~~\nParameter sets checked:  \n", length(unique(param_combinations)))
+	print("\n~~~~~~~~~~~~~~~~~~~~~\nParameter sets checked:  \n", length(param_perms))
 	
-	# [print(c,  "\n") for c in param_combinations]
 	
 end
 
@@ -187,13 +179,11 @@ end
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
-Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 
 [compat]
-Combinatorics = "~1.0.2"
 Plots = "~1.38.10"
 Symbolics = "~5.3.1"
 """
@@ -204,7 +194,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.0"
 manifest_format = "2.0"
-project_hash = "81f5ece2b87b0af10bf7f55ce67c8b07dc73b88b"
+project_hash = "6891008454248ade51af9448a58521fac349ecd1"
 
 [[deps.AbstractAlgebra]]
 deps = ["GroupsCore", "InteractiveUtils", "LinearAlgebra", "MacroTools", "Random", "RandomExtensions", "SparseArrays", "Test"]
@@ -1510,7 +1500,7 @@ version = "1.4.1+0"
 # ╠═ccac70b4-e82f-11ed-1fd5-0f61af1d45c8
 # ╟─a128efad-199c-4ad4-bda3-c7ce80a9a780
 # ╠═7c2e0059-4ff8-4eff-88b3-fce17c64d403
-# ╠═68c500ef-42c3-4a0f-966f-458e60210116
+# ╟─68c500ef-42c3-4a0f-966f-458e60210116
 # ╠═dd9ed48e-26f0-441c-883f-1e0ee9143caf
 # ╠═0a093e88-0e9e-43a5-aab0-b4b674f5c469
 # ╟─a2a86974-0606-486a-83c4-a3319158f31b
