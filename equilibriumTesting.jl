@@ -6,7 +6,7 @@ using InteractiveUtils
 
 # ╔═╡ ccac70b4-e82f-11ed-1fd5-0f61af1d45c8
 begin 
-	using Symbolics, Plots, PlutoUI, HypertextLiteral, Combinatorics, Base.Iterators
+	using Symbolics, Plots, LinearAlgebra, Combinatorics
 end
 
 # ╔═╡ a128efad-199c-4ad4-bda3-c7ce80a9a780
@@ -114,32 +114,50 @@ begin
 	## Equilibria for extinction and bacterial fixation in Glucose limited model
 	[f(0,0,0), f(KG,0,0)]
 	
-	
 end
 
+# ╔═╡ 68c500ef-42c3-4a0f-966f-458e60210116
+md"""
+The base model contains 3 trivial equilibria at $f(0, 0, 0)$, $f(KB, 0, 0)$, and $f(0, KY, 0)$, corresponding to three-way extinction, bacterial fixation / yeast extinction, and bacterial fixation / glucose-utilizing yeast fixation. 
+
+There are only two simple equilibria in the glucose-limited model: $f(0, 0, 0)$ and $f(KB, 0, 0)$, corresponding to extinction and bacterial fixation / yeast extinction respectively. Whether a steady/stable yeast population is possible is unclear, but it is not trivial.
+"""
+
 # ╔═╡ dd9ed48e-26f0-441c-883f-1e0ee9143caf
-## Testing all permutations of f(x, y, z) for equilibria
+
+	## Testing all permutations of f(x, y, z) for equilibria, where x, y, and z
+	## are (individual) variables of the model. This tests for "simple" equilibria
+	## like those corresponding to extinction or fixation of the populations. 
+	## It does NOT check affine or linear combinations of inputs. For example,
+	## it will check the input f(rG, 0, 0), but not inputs of the form f(rG*H, 0, 0)
+	## or f(rG+H, 0, 0). 
+	
 begin
+	
+	## The below code generates every triplet of parameter combinations to check
+	## for equilibria. It's exhausitve, but generates some permutations multiple times
+	## Overcounting is happening because combinations do not (by definition) count
+	## different orders as unique, but there is no function for sampling permutations
+	## with replacements (i.e. triplets do not appear). A more efficient solution 
+	## could be developed (and added to Combinatorics.jl), but this is only over- 
+	## counting by ~50% when considering "trivial" inputs. 
 
 	param_set = [0 B G g rB rG rg KB KY KG H p E]
-
 	param_combinations = []
-
-	## This over counts, but does exhaustively search every parameter combination
+	
 	for x in with_replacement_combinations(param_set, 3)
 		for y in permutations(x)
 			push!(param_combinations, y)
 		end
 	end
 	
-	## Weird quirk of symbolics is it will only evaluate == properly when both
+	## A quirk of symbolics is it will only evaluate == when both
 	## elements are all zeros. Since I'm looking for equilibria symbolically
 	## ---outputs of the form [0,0,0]---I can use the try/catch loop to check for 
 	## zeros. This could be improved :)
 
 	for c in unique(param_combinations)
-		test_var = f(c...)
-		try test_var == [0,0,0] 
+		try f(c...) == [0,0,0] 
 			print("Equilibrium found at: ", c, "\n \n")
 		catch e
 			# print(c, "  : ", test_var, "\n\n")
@@ -154,24 +172,29 @@ begin
 end
 
 # ╔═╡ 0a093e88-0e9e-43a5-aab0-b4b674f5c469
-#=╠═╡
 j = Symbolics.jacobian(map(x->x(B,G,g), eqs), [B, G, g])
-  ╠═╡ =#
+
+# ╔═╡ a2a86974-0606-486a-83c4-a3319158f31b
+	md"""Extinction equilibrium has same properties identified by JVC in the base model growth rates ($rB$ and $rG$) are assumed positive, so the equilibrium is unstable when $rg > H$."""
+	
+
+# ╔═╡ 7632a9b6-4e01-465c-b5bf-b478ff766d83
+begin
+	@variables λ
+	det(λ * I - substitute(j, Dict(B=>0, G=>0, g=>0)))
+end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
 Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
-HypertextLiteral = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
-PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 
 [compat]
 Combinatorics = "~1.0.2"
-HypertextLiteral = "~0.9.4"
 Plots = "~1.38.10"
-PlutoUI = "~0.7.50"
 Symbolics = "~5.3.1"
 """
 
@@ -181,19 +204,13 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.0"
 manifest_format = "2.0"
-project_hash = "65609e89db6e24a293d05b75361df7c940155c2a"
+project_hash = "81f5ece2b87b0af10bf7f55ce67c8b07dc73b88b"
 
 [[deps.AbstractAlgebra]]
 deps = ["GroupsCore", "InteractiveUtils", "LinearAlgebra", "MacroTools", "Random", "RandomExtensions", "SparseArrays", "Test"]
 git-tree-sha1 = "3ee5c58774f4487a5bf2bb05e39d91ff5022b4cc"
 uuid = "c3fe647b-3220-5bb0-a1ea-a7954cac585d"
 version = "0.29.4"
-
-[[deps.AbstractPlutoDingetjes]]
-deps = ["Pkg"]
-git-tree-sha1 = "8eaf9f1b4921132a4cff3f36a1d9ba923b14a481"
-uuid = "6e696c72-6542-2067-7265-42206c756150"
-version = "1.1.4"
 
 [[deps.AbstractTrees]]
 git-tree-sha1 = "faa260e4cb5aba097a73fab382dd4b5819d8ec8c"
@@ -587,24 +604,6 @@ git-tree-sha1 = "432b5b03176f8182bd6841fbfc42c718506a2d5f"
 uuid = "34004b35-14d8-5ef3-9330-4cdb6864b03a"
 version = "0.3.15"
 
-[[deps.Hyperscript]]
-deps = ["Test"]
-git-tree-sha1 = "8d511d5b81240fc8e6802386302675bdf47737b9"
-uuid = "47d2ed2b-36de-50cf-bf87-49c2cf4b8b91"
-version = "0.0.4"
-
-[[deps.HypertextLiteral]]
-deps = ["Tricks"]
-git-tree-sha1 = "c47c5fa4c5308f27ccaac35504858d8914e102f9"
-uuid = "ac1192a8-f4b3-4bfe-ba22-af5b92cd3ab2"
-version = "0.9.4"
-
-[[deps.IOCapture]]
-deps = ["Logging", "Random"]
-git-tree-sha1 = "f7be53659ab06ddc986428d3a9dcc95f6fa6705a"
-uuid = "b5f81e59-6552-4d32-b1f0-c071b021bf89"
-version = "0.2.2"
-
 [[deps.IfElse]]
 git-tree-sha1 = "debdd00ffef04665ccbb3e150747a77560e8fad1"
 uuid = "615f187c-cbe4-4ef1-ba3b-2fcf58d6d173"
@@ -800,11 +799,6 @@ git-tree-sha1 = "cedb76b37bc5a6c702ade66be44f831fa23c681e"
 uuid = "e6f89c97-d47a-5376-807f-9c37f3926c36"
 version = "1.0.0"
 
-[[deps.MIMEs]]
-git-tree-sha1 = "65f28ad4b594aebe22157d6fac869786a255b7eb"
-uuid = "6c6e2e6c-3030-632d-7369-2d6c69616d65"
-version = "0.1.4"
-
 [[deps.MacroTools]]
 deps = ["Markdown", "Random"]
 git-tree-sha1 = "42324d08725e200c23d4dfb549e0d5d89dede2d2"
@@ -961,12 +955,6 @@ deps = ["Base64", "Contour", "Dates", "Downloads", "FFMPEG", "FixedPointNumbers"
 git-tree-sha1 = "5434b0ee344eaf2854de251f326df8720f6a7b55"
 uuid = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 version = "1.38.10"
-
-[[deps.PlutoUI]]
-deps = ["AbstractPlutoDingetjes", "Base64", "ColorTypes", "Dates", "FixedPointNumbers", "Hyperscript", "HypertextLiteral", "IOCapture", "InteractiveUtils", "JSON", "Logging", "MIMEs", "Markdown", "Random", "Reexport", "URIs", "UUIDs"]
-git-tree-sha1 = "5bb5129fdd62a2bbbe17c2756932259acf467386"
-uuid = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
-version = "0.7.50"
 
 [[deps.PreallocationTools]]
 deps = ["Adapt", "ArrayInterface", "ForwardDiff", "Requires"]
@@ -1522,7 +1510,10 @@ version = "1.4.1+0"
 # ╠═ccac70b4-e82f-11ed-1fd5-0f61af1d45c8
 # ╟─a128efad-199c-4ad4-bda3-c7ce80a9a780
 # ╠═7c2e0059-4ff8-4eff-88b3-fce17c64d403
+# ╠═68c500ef-42c3-4a0f-966f-458e60210116
 # ╠═dd9ed48e-26f0-441c-883f-1e0ee9143caf
 # ╠═0a093e88-0e9e-43a5-aab0-b4b674f5c469
+# ╟─a2a86974-0606-486a-83c4-a3319158f31b
+# ╠═7632a9b6-4e01-465c-b5bf-b478ff766d83
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
