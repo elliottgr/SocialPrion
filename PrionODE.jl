@@ -93,9 +93,9 @@ begin
 	r_B, r_g, r_G, k_B, k_Y, k_G, E, H, pr = values
     p = [r_B, r_g, r_G, k_B, k_Y, k_G, E, H, pr]
 
-	B_0 = 1 ## Bacterial pop size // Guessing at a reasonable population size
-	G_0 = 0.9 ## Glucose utilizing / gra- pop size
-	g_0 = 0.05 ## Non-glucose utilizing / GRA+ pop size
+	B_0 = .1## Bacterial pop size // Guessing at a reasonable population size
+	G_0 = 0.1 ## Glucose utilizing / gra- pop size
+	g_0 = .000001 ## Non-glucose utilizing / GRA+ pop size
 
 	u = [B_0, G_0, g_0]
 	# u = state_var(B_0, G_0, g_0)
@@ -110,6 +110,11 @@ begin
 	
 	    plot(sol, labels = ["B(t)" "G(t)" "g(t)"], title="E = $E, H = $H, P = $pr")
 end
+
+# ╔═╡ 83a7b44f-31dd-455f-90e5-8ad9ec5adaf6
+	# print(sol.t , "\n", sol.u)
+		# print(sol.u[1], sol.u[2])
+	print(last(sol.u))
 
 # ╔═╡ f3560955-0285-4474-bac2-eac2b223a86f
 Markdown.parse("""
@@ -1791,8 +1796,9 @@ version = "1.4.1+0"
 # ╠═bd85fdd8-b34a-4ebe-8e14-e63630bf6db7
 # ╠═a3e7ce07-45b9-467b-ba5b-b40ba6581f74
 # ╟─a1b203b6-7c60-4444-bac7-b042a4e86b2f
-# ╠═941bea98-1cf7-4b1d-9ab4-e9a88c658ea0
+# ╟─941bea98-1cf7-4b1d-9ab4-e9a88c658ea0
 # ╠═384d72ad-4d7f-4800-b12b-2033e2d9567d
+# ╠═83a7b44f-31dd-455f-90e5-8ad9ec5adaf6
 # ╠═f3560955-0285-4474-bac2-eac2b223a86f
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002

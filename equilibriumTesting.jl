@@ -9,82 +9,6 @@ begin
 	using Symbolics, Plots, LinearAlgebra
 end
 
-# ╔═╡ a128efad-199c-4ad4-bda3-c7ce80a9a780
-# ╠═╡ disabled = true
-#=╠═╡
-begin 
-
-	## Model parameters
-	
-	r = 1.0
-	G = 0.5
-	g = 0.5
-	K_B = 1.0
-	K_y = 1.0
-	K_G = 1.0
-	H = 0.1
-	B = 1.0
-	p = 0.2
-	E = 0.1
-	
-	## Plotting parameters
-
-	N_min = 0.0
-	N_step = 0.01
-	N_max = 1.0
-
-
-	## Base model
-	
-	function dBdt(r, B, G, g, K_B, K_y, K_G, H, p, E)
-		return r*B*(1-(B/K_B)) - (B*G*E)
-	end
-	
-	function dGdt(r, B, G, g, K_B, K_y, K_G, H, p, E)
-		return r*G*(1-((G+g)/K_y)) + (H * g) - (B*p*G) 
-	end
-	
-	function dgdt(r, B, G, g, K_B, K_y, K_G, H, p, E)
-		return r*g*(1-((G+g)/K_y)) + (B*p*G) - (H*g)
-	end
-
-	## Glucose limited model
-
-	function dBdt_G(r, B, G, g, K_B, K_y, K_G, H, p, E)
-		return r*B*(1-(B/K_B)) - (B*G*E)
-	end
-	
-	function dGdt_G(r, B, G, g, K_B, K_y, K_G, H, p, E)
-		return r*G*(1 - ((G+B)/K_G) - ((g+G)/K_y)) + (H * g) - (B*p*G) 
-	end
-
-	function dgdt_G(r, B, G, g, K_B, K_y, K_G, H, p, E)
-		return r*g*(1 - ((g+G)/K_y)) + (B*p*G) - (H*g)
-	end
-	
-	## Plotting
-	p1 = plot(title = "Base Model", ylim = (-0.5, 0.5), legend = :none)
-	p2 = plot(title = "Glucose Limited Model", ylim = (-0.5, 0.5), yformatter = :none)
-	
-	plot!(p1, N_min:N_step:N_max, [dBdt(r, N, G, g, K_B, K_y, K_G, H, p, E) for N in N_min:N_step:N_max], label = "B")
-	
-	plot!(p1, N_min:N_step:N_max, [dGdt(r, B, N, g, K_B, K_y, K_G, H, p, E) for N in N_min:N_step:N_max], label = "G")
-
-	plot!(p1, N_min:N_step:N_max, [dgdt(r, B, G, N, K_B, K_y, K_G, H, p, E) for N in N_min:N_step:N_max], label = "g")
-
-	plot!(p2, N_min:N_step:N_max, [dBdt_G(r, N, G, g, K_B, K_y, K_G, H, p, E) for N in N_min:N_step:N_max], label = "B")
-
-	plot!(p2, N_min:N_step:N_max, [dGdt_G(r, B, N, g, K_B, K_y, K_G, H, p, E) for N in N_min:N_step:N_max], label = "G")
-
-	plot!(p2, N_min:N_step:N_max, [dgdt_G(r, B, G, N, K_B, K_y, K_G, H, p, E) for N in N_min:N_step:N_max], label = "g")
-	
-	plot(p1, p2, layout = (1,2))
-
-
-	# plot([base_B, base_G, base_g, glucose_B, glucose_G, glucose_G], layout = (2,1))
-end
-  ╠═╡ =#
-
 # ╔═╡ 7c2e0059-4ff8-4eff-88b3-fce17c64d403
 begin
 
@@ -109,18 +33,28 @@ begin
 	f = (B, G, g) -> map(x->x(B,G,g), eqs)
 
 	## Equilibria corresponding to extinction, Glucose yeast fixation, and bacterial fixation resp. in base model (also from JVC)
-	# [f(0,0,0), f(0,KY,0), f(KB,0,0)]
+	# [f(0,0,0), f(0,KY,0), f(KB,0,0), f((KB/(G*E)), 1, 0)]
 
 	## Equilibria for extinction and bacterial fixation in Glucose limited model
-	[f(0,0,0), f(KG,0,0)]
-	
+	[f(0,0,0), 
+	 f(KG,0,0), 
+	 f(0,(KG*KY)/(KG+KY), 0), 
+	 f(KG - ((KG*G*E)/rB) - G, ((KY * (KG - B)) / (KY + KG)), 0)]
+
+	# ((KY * (KG - B)) / (KY + KG))	
 end
 
 # ╔═╡ 68c500ef-42c3-4a0f-966f-458e60210116
 md"""
 The base model contains 3 trivial equilibria at $f(0, 0, 0)$, $f(KB, 0, 0)$, and $f(0, KY, 0)$, corresponding to three-way extinction, bacterial fixation / yeast extinction, and bacterial fixation / glucose-utilizing yeast fixation. 
 
-There are only two simple equilibria in the glucose-limited model: $f(0, 0, 0)$ and $f(KB, 0, 0)$, corresponding to extinction and bacterial fixation / yeast extinction respectively. Whether a steady/stable yeast population is possible is unclear, but it is not trivial.
+There are only two simple equilibria in the glucose-limited model: $f(0, 0, 0)$ and $f(KB, 0, 0)$, corresponding to extinction and bacterial fixation / yeast extinction respectively. A steady state yeast equilibria ($f(0, KY, 0)$ in the base model) is present at $f(0,(KG*KY)/(KG+KY), 0)$. 
+
+When $p = 0$ (i.e. when there is no prion activation) and $g = 0$, an unstable equilibrium exists at 
+
+$B = KG - ((KG*G*E)/rB) - G$
+$G = (KY * (KG - B)) / (KY + KG)$
+$g = 0$
 """
 
 # ╔═╡ dd9ed48e-26f0-441c-883f-1e0ee9143caf
@@ -175,6 +109,12 @@ begin
 	@variables λ
 	det(λ * I - substitute(j, Dict(B=>0, G=>0, g=>0)))
 end
+
+# ╔═╡ 756b486e-04d7-48a3-91a0-8f20b61b466c
+
+
+# ╔═╡ 2e7482df-26c5-4f78-b7e6-35a695d36ba0
+det(λ * I - substitute(j, Dict(B=>KG, G=>0, g=>0)))
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1498,12 +1438,13 @@ version = "1.4.1+0"
 
 # ╔═╡ Cell order:
 # ╠═ccac70b4-e82f-11ed-1fd5-0f61af1d45c8
-# ╟─a128efad-199c-4ad4-bda3-c7ce80a9a780
 # ╠═7c2e0059-4ff8-4eff-88b3-fce17c64d403
-# ╟─68c500ef-42c3-4a0f-966f-458e60210116
-# ╠═dd9ed48e-26f0-441c-883f-1e0ee9143caf
+# ╠═68c500ef-42c3-4a0f-966f-458e60210116
+# ╟─dd9ed48e-26f0-441c-883f-1e0ee9143caf
 # ╠═0a093e88-0e9e-43a5-aab0-b4b674f5c469
 # ╟─a2a86974-0606-486a-83c4-a3319158f31b
 # ╠═7632a9b6-4e01-465c-b5bf-b478ff766d83
+# ╠═756b486e-04d7-48a3-91a0-8f20b61b466c
+# ╠═2e7482df-26c5-4f78-b7e6-35a695d36ba0
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
