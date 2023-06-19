@@ -55,55 +55,89 @@ begin
 	
     p = [r_B, r_g, r_G, k_B, k_Y, k_G, E, H, pr]
 
-	B_0 = .1## Bacterial pop size // Guessing at a reasonable population size
-	G_0 = 0.1 ## Glucose utilizing / gra- pop size
-	g_0 = 0 ## Non-glucose utilizing / GRA+ pop size
+	B_0 = .0001## Bacterial pop size // Guessing at a reasonable population size
+	G_0 = 0.0001 ## Glucose utilizing / gra- pop size
+	g_0 = 0.0001 ## Non-glucose utilizing / GRA+ pop size
 
 	u = [B_0, G_0, g_0]
-	
 	u_B_fix = [0.99, 0.0001, 0]
 	u_G_fix = [0.0001, 0.99, 0]
 	# u = state_var(B_0, G_0, g_0)
 # 
-	t_min, t_max = (0.0, 25.0)
+	t_min, t_max = (0.0, 30.0)
 	tspan = (t_min, t_max)
 end
 
 # ╔═╡ 936e014d-56e0-47ac-8d52-39cfa8029e1d
 begin
 	    prob = ODEProblem(f, u, tspan, p)
-	    sol = solve(prob)
-		print(last(sol), "\n")
-		B_line = B_eq(r_B, k_G, last(sol)[2], E)
-		G_line = G_eq(k_Y, k_G, r_G, last(sol)[1], last(sol)[3], pr, E, H)
-		g_line = g_eq(r_g, H, last(sol)[1], last(sol)[2], k_Y, pr)
+		prob_B_fixed = ODEProblem(f, u_B_fix, tspan, p)
+		prob_G_fixed = ODEProblem(f, u_G_fix, tspan, p)
+	
+		sol = solve(prob)
+		sol_B_fixed = solve(prob_B_fixed)
+		sol_G_fixed = solve(prob_G_fixed)
 
-		print("\n Predicted and observed equilibria \n ~~~~~~~~~~~ \n B Pred: ",
-			B_line, "  B Obs: ", last(sol)[1], "\n",
-			"G Pred: " , G_line, " G Obs: ", last(sol)[2], "\n",
-			"g Pred: ", g_line, " g Obs: ", last(sol)[3], "\n\n")
-
-
-		##### Plotting Stuff
-		# print([x for x in sol[1]])
 		B_color = :red
 		G_color = :green
 		g_color = :blue
-		dash_alpha = 0.5
-		title_str = "E = $E, H = $H, P = $pr"
+
+		y_lim = (0, 0.65) ## ignores the top 1/3 of the plot that doesnt do much
+		plotsize = (800, 300)
+
+		##### Plotting Stuff
+		function plot_solutions(sol, E, H, pr, B_color, G_color, g_color, title_str = "", legend = false)
+
+			## Calculating equilibria heights 
+			B_line = B_eq(r_B, k_G, last(sol)[2], E)
+			G_line = G_eq(k_Y, k_G, r_G, last(sol)[1], last(sol)[3], pr, E, H)
+			g_line = g_eq(r_g, H, last(sol)[1], last(sol)[2], k_Y, pr)
+
+			## Uncomment to test predictions in terminal
+			# print("\n Predicted and observed equilibria \n ~~~~~~~~~~~ \n B Pred: ",
+			# B_line, "  B Obs: ", last(sol)[1], "\n",
+			# "G Pred: " , G_line, " G Obs: ", last(sol)[2], "\n",
+			# "g Pred: ", g_line, " g Obs: ", last(sol)[3], "\n\n")
+			
+			B_color = :red
+			G_color = :green
+			g_color = :blue
+			dash_alpha = 0.3
+			# title_str = "E = $E, H = $H, P = $pr"
+			title_str = title_str
+			x_label = ""
+			
+			plt = plot(sol, idxs = (0,1), labels = "B(t)", lc = B_color, title=title_str, legend = legend) # B plot
+			plot!(sol, idxs = (0,2), labels = "G(t)", lc = G_color, title=title_str ) # G plot
+			plot!(sol, idxs = (0,3), labels = "g(t)", lc = g_color, title=title_str ) # g plot
 		
-		plot(sol, idxs = (0,1), labels = "B(t)", title=title_str ) # B plot
-		plot!(sol, idxs = (0,2), labels = "G(t)", title="E = $E, H = $H, P = $pr" ) # G plot
-		plot!(sol, idxs = (0,3), labels = "g(t)", title="E = $E, H = $H, P = $pr" ) # B plot
+		    # plot(sol, labels = ["B(t)" "G(t)" "g(t)"], title="E = $E, H = $H, P = $pr")
+			plot!([t_min, t_max], [B_line, B_line], lc = B_color, la = dash_alpha, ls = :dash) ## B
+			plot!([t_min, t_max], [G_line[2], G_line[2]], lc = G_color, la = dash_alpha, ls = :dash) ## G
+			plot!([t_min, t_max], [g_line[1], g_line[1]],lc = g_color, la = dash_alpha, ls = :dash) ## g
+			return plot(plt, xlabel = x_label)
+		end
+
 	
-	    # plot(sol, labels = ["B(t)" "G(t)" "g(t)"], title="E = $E, H = $H, P = $pr")
-		plot!([t_min, t_max], [B_line, B_line], ls = :dash)
-		plot!([t_min, t_max], [G_line[2], G_line[2]], ls = :dash)
-		plot!([t_min, t_max], [g_line[1], g_line[1]], ls = :dash)
-
-
-
+	
+	legend_plot = plot(plot((1:3)', lc= B_color), plot((1:3)', lc= G_color), plot((1:3)', lc= g_color), labels = ["B(t)" "g(t)" "G(t)"],  legend = true, framestyle = :none) ## Dummy plot that takes parameters to make the legend
+	
+	plot(
+		plot_solutions(sol, E, H, pr, B_color, G_color, g_color, "(a)"), 
+		
+		plot(plot_solutions(sol_B_fixed, E, H, pr, B_color, G_color, g_color, "(b)"), yformatter=_-> "",),
+		
+		plot(plot_solutions(sol_G_fixed, E, H, pr, B_color, G_color, g_color, "(c)"),yformatter=_-> "",), size = plotsize,
+		
+		ylim=y_lim, layout = (1,3), sharey = true, link = :both, dpi = 1000)
+	
 end
+
+# ╔═╡ db710f40-e227-4b6c-ad39-9e350104a89b
+plot(plot_solutions(sol, E, H, pr, B_color, G_color, g_color, "", true), size(1000,1000))
+
+# ╔═╡ 87a8e08d-1f1f-407d-8dcb-0ba26b01e29f
+
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -1796,5 +1830,7 @@ version = "1.4.1+0"
 # ╠═a5992505-4447-4d46-87be-574bcd3e25df
 # ╠═43fb3a9d-3b31-448b-9646-9f7881913496
 # ╠═936e014d-56e0-47ac-8d52-39cfa8029e1d
+# ╠═db710f40-e227-4b6c-ad39-9e350104a89b
+# ╠═87a8e08d-1f1f-407d-8dcb-0ba26b01e29f
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
