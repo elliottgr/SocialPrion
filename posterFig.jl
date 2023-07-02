@@ -134,9 +134,17 @@ begin
 end
 
 # ╔═╡ db710f40-e227-4b6c-ad39-9e350104a89b
-plot(plot_solutions(sol, E, H, pr, B_color, G_color, g_color, "", true), size(1000,1000))
+plot(plot_solutions(sol, E, H, pr, B_color, G_color, g_color, "", true), size(1000,1000), framestyle = :none)
 
-# ╔═╡ 87a8e08d-1f1f-407d-8dcb-0ba26b01e29f
+# ## Generating the legend
+
+# plot(plot((1,3)'),
+# 	# plot((1)', labels = "B(t)", lc = B_color),
+# 	# plot((1)', labels = "G(t)", lc = G_color),
+# 	# plot((1)', labels = "g(t)", lc = g_color),
+# 	framestyle = :none)
+
+# ╔═╡ 2585c8ed-c5b3-4940-ae5a-e980fe50fffa
 
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -1831,6 +1839,6 @@ version = "1.4.1+0"
 # ╠═43fb3a9d-3b31-448b-9646-9f7881913496
 # ╠═936e014d-56e0-47ac-8d52-39cfa8029e1d
 # ╠═db710f40-e227-4b6c-ad39-9e350104a89b
-# ╠═87a8e08d-1f1f-407d-8dcb-0ba26b01e29f
+# ╠═2585c8ed-c5b3-4940-ae5a-e980fe50fffa
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
