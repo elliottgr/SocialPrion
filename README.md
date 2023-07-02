@@ -5,4 +5,4 @@ This repository contains code developed while modeling the yeast GRA+ prion syst
 * **derivativePlots.jl** : Explores derivatives of the model for varying population and parameter values
 * **equilibriumTesting** : Uses Symbolics.jl to identify model equilibria and their stability
 * **posterFig.jl** : Code used to generate the poster figures presented at Evolution 2023
-* 
+* **EvolutionPoster.pdf** : Final poster presented at the Evolution 2023 conference, explains the model
